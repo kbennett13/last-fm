@@ -1,10 +1,6 @@
 var margin = {top: 10, right: 10, bottom: 10, left: 10};
 var height = window.innerHeight - margin.top - margin.bottom;
 
-function getHeight() {
-  return height + "px;";
-}
-
 function fillSpaces(d, track) {
   var words;
   if (track) {
@@ -34,6 +30,10 @@ function removeSpaces(name) {
   }
   withoutSpaces += words[words.length - 1];
   return withoutSpaces;
+}
+
+function numberWithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 function makeArtistsPie(data) {
@@ -132,6 +132,9 @@ function mapEvents(data) {
 
 function stackTracks(data) {
   var tracksDiv = document.getElementById("tracks");
+  var stackHeight = 30;
+  var textOffset = 20;
+  var scalingFactor = 2500;
 
   dataset = [];
   listeners = [];
@@ -178,25 +181,40 @@ function stackTracks(data) {
   .data(function(d) { return d; })
   .enter()
   .append("rect")
-  .attr("y", function (d) { return d.x*30; })
+  .attr("y", function (d) { return d.x*stackHeight; })
   .attr("x", function(d) {
-        return d.y0/5000;
+        return d.y0/scalingFactor;
         })
   .attr("width", function(d) {
-        return d.y/5000 - d.y0/5000;
+        return d.y/scalingFactor - d.y0/scalingFactor;
         })
-  .attr("height", 30);
+  .attr("height", stackHeight)
+  .on("mouseenter", function(d, i) {
+      svg.append("text")
+      .attr("id", "tooltip")
+      .attr("x", margin.left)
+      .attr("y", i*stackHeight+textOffset)
+      .attr("text-anchor", "left")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "14px")
+      .attr("font-weight", "bold")
+      .attr("fill", "black")
+      .text((i + 1) + ". " + data[i].name + " - " + numberWithCommas(data[i].listeners) + " listeners, " + numberWithCommas(data[i].playcount) + " plays")
+      })
+  .on("mouseleave", function(d) {
+      d3.select("#tooltip").remove();
+      });
   
   for (d = 0; d < data.length; d++) {
     svg.append("text")
-    .attr("x", 0+10)
-    .attr("y", d*30+25)
+    .attr("x", margin.left)
+    .attr("y", d*stackHeight+textOffset)
     .attr("text-anchor", "left")
     .attr("font-family", "sans-serif")
-    .attr("font-size", "16px")
+    .attr("font-size", "14px")
     .attr("font-weight", "bold")
     .attr("fill", "black")
-    .text(data[d].name);
+    .text(data[d]["@attr"]["rank"] + ". " + data[d].name);
   }
   
   console.log(dataset);
