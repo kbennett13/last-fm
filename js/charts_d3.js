@@ -216,6 +216,4 @@ function stackTracks(data) {
     .attr("fill", "black")
     .text(data[d]["@attr"]["rank"] + ". " + data[d].name);
   }
-  
-  console.log(dataset);
 }
